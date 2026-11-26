@@ -383,15 +383,16 @@ export default class Openbar extends Extension {
                         this.applySectionStyles(sectionList, add);
 
                         const msgHbox = msgbox.get_child_at_index(1); // hbox at botton for dnd and clear buttons
+                        let clearBtn;
                         if(this.gnomeVersion < 49) {
                             const dndBtn = msgHbox.get_child_at_index(1);
                             this.applyMenuClass(dndBtn, add);
                             const toggleSwitch = dndBtn.get_child_at_index(0);
                             this.applyMenuClass(toggleSwitch, add);
-                            const clearBtn = msgHbox.get_child_at_index(2);
+                            clearBtn = msgHbox.get_child_at_index(2);
                         }
                         else {
-                            const clearBtn = msgHbox.get_child_at_index(1);
+                            clearBtn = msgHbox.get_child_at_index(1);
                         }
                         this.applyMenuClass(clearBtn, add);
 
@@ -431,6 +432,19 @@ export default class Openbar extends Extension {
 
     // Add OpenBar style classes to Panel and Panel-Buttons
     setPanelStyle(obj, key, sig_param, callbk_param) {
+        // Guard against firing while the shell is tearing down panel boxes
+        // (e.g. during logout/shutdown) which crashes gnome-shell — see
+        // https://github.com/neuromorph/openbar/issues/63
+        if(this.disabling || !this._settings)
+            return;
+        try {
+            this._setPanelStyleInner(obj, key, sig_param, callbk_param);
+        } catch(e) {
+            log(`openbar: setPanelStyle skipped (${e})`);
+        }
+    }
+
+    _setPanelStyleInner(obj, key, sig_param, callbk_param) {
         // console.log('setPanelStyle: ', String(obj), key, String(sig_param), callbk_param);
         const panel = Main.panel;
         const bartype = this._settings.get_string('bartype');
