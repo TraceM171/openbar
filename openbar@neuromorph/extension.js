@@ -1454,6 +1454,10 @@ export default class Openbar extends Extension {
         ];
         // Connections for actor-added/removed OR child-added/removed as per Gnome version
         for(const panelBox of this.panelBoxes) {
+            // Stop restyling once the panel is being torn down (logout/shutdown):
+            // 'destroy' fires before children are removed, so later child-removed
+            // and notify::visible signals would otherwise touch disposed boxes.
+            connections.push([panelBox, 'destroy', () => { this.disabling = true; }]);
             connections.push([panelBox, this.addedSignal, this.updatePanelStyle.bind(this)]);
             connections.push([panelBox, this.removedSignal, this.updatePanelStyle.bind(this)]);
         }
