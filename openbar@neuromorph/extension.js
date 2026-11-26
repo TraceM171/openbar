@@ -1497,6 +1497,28 @@ export default class Openbar extends Extension {
         }, 2000);
         // Set initial bguri as per color-scheme
         const bguri = this._settings.get_string('bguri');
+        // OpenBar runtime directory
+        const userRunDir = GLib.get_user_runtime_dir();
+        this.obarRunDir = Gio.File.new_for_path(`${userRunDir}/io.github.neuromorph.openbar`);
+        this.obarAssetsDir = Gio.File.new_for_path(`${this.obarRunDir.get_path()}/assets`);
+        // Create dirs if missing
+        if(!this.obarAssetsDir.query_exists(null)) {
+            try {
+                this.obarAssetsDir.make_directory_with_parents(null);
+            }
+            catch(e) {
+                console.error('Error creating OpenBar runtime/assets directory: ' + e);
+            }
+        }
+        // Copy static assets (SVGs) to runtime dir
+        const assetsSrcDir = Gio.File.new_for_path(`${this.path}/media/assets`);
+        const iter = assetsSrcDir.enumerate_children('standard::name', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
+        for(const fileInfo of iter) {
+            let srcFile = Gio.File.new_for_path(`${assetsSrcDir.get_path()}/${fileInfo.get_name()}`);
+            let dstFile = Gio.File.new_for_path(`${this.obarAssetsDir.get_path()}/${fileInfo.get_name()}`);
+            srcFile.copy_async(dstFile, Gio.FileCopyFlags.OVERWRITE | Gio.FileCopyFlags.TARGET_DEFAULT_PERMS, GLib.PRIORITY_DEFAULT, null, null);
+        }
+
         if(bguri == '')
             this.updateBguri();
         else {
@@ -1522,28 +1544,6 @@ export default class Openbar extends Extension {
                 }
             }
         );
-
-        // OpenBar runtime directory
-        const userRunDir = GLib.get_user_runtime_dir();
-        this.obarRunDir = Gio.File.new_for_path(`${userRunDir}/io.github.neuromorph.openbar`);
-        this.obarAssetsDir = Gio.File.new_for_path(`${this.obarRunDir.get_path()}/assets`);
-        // Create dirs if missing
-        if(!this.obarAssetsDir.query_exists(null)) {
-            try {
-                this.obarAssetsDir.make_directory_with_parents(null);
-            }
-            catch(e) {
-                console.error('Error creating OpenBar runtime/assets directory: ' + e);
-            }
-        }
-        // Copy static assets (SVGs) to runtime dir
-        const assetsSrcDir = Gio.File.new_for_path(`${this.path}/media/assets`);
-        const iter = assetsSrcDir.enumerate_children('standard::name', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
-        for(const fileInfo of iter) {
-            let srcFile = Gio.File.new_for_path(`${assetsSrcDir.get_path()}/${fileInfo.get_name()}`);
-            let dstFile = Gio.File.new_for_path(`${this.obarAssetsDir.get_path()}/${fileInfo.get_name()}`);
-            srcFile.copy_async(dstFile, Gio.FileCopyFlags.OVERWRITE | Gio.FileCopyFlags.TARGET_DEFAULT_PERMS, GLib.PRIORITY_DEFAULT, null, null);
-        }
 
         // Add 'openbar' class to top panel and panelBox
         panel.add_style_class_name('openbar');
