@@ -2132,13 +2132,13 @@ function getStylesheet(obar, Me) {
         #panel${openbarClass}.trilands .panel-button {
             ${triMidStyle}
         }
-        #panel${openbarClass}.trilands .button-container:first-child .panel-button {
+        #panel${openbarClass}.trilands .button-container:obar-first .panel-button {
             ${triLeftStyle}
         }
-        #panel${openbarClass}.trilands .button-container:last-child .panel-button {
+        #panel${openbarClass}.trilands .button-container:obar-last .panel-button {
             ${triRightStyle}
         }
-        #panel${openbarClass}.trilands .button-container:first-child:last-child .panel-button {
+        #panel${openbarClass}.trilands .button-container:obar-first:obar-last .panel-button {
             ${triBothStyle}
         }
 

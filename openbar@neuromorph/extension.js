@@ -505,16 +505,25 @@ export default class Openbar extends Extension {
                 idx++;
             }
 
-            // Add trilands pseudo-classes if enabled else remove them
+            // Trilands: mark the first/last *visible* buttons with pseudo-classes.
+            // CSS :first-child/:last-child also count hidden indicators, so a hidden
+            // button at the edge of a box (e.g. an idle media indicator) would leave
+            // the visible edge button without its rounded corners.
             let btns = box.get_children();
-            if(bartype == 'Trilands') {
-                for(let k=0; k<btns.length; k++) {
-                    if(btns[k].child instanceof PanelMenu.Button || btns[k].child instanceof PanelMenu.ButtonBox) {
-                        if(k == firstIdx && k != lastIdx)
-                            box.set_child_at_index(btns[k], 0);
-                        else if(k == lastIdx && k != firstIdx)
-                            box.set_child_at_index(btns[k], btns.length-1);
-                    }
+            const hasVisible = !isFirst;
+            for(let k=0; k<btns.length; k++) {
+                const b = btns[k];
+                if(!(b.child instanceof PanelMenu.Button || b.child instanceof PanelMenu.ButtonBox))
+                    continue;
+                const tri = bartype == 'Trilands' && hasVisible && b.child.visible;
+                if(tri && k == firstIdx) b.add_style_pseudo_class('obar-first');
+                else b.remove_style_pseudo_class('obar-first');
+                if(tri && k == lastIdx) b.add_style_pseudo_class('obar-last');
+                else b.remove_style_pseudo_class('obar-last');
+                // Re-evaluate edges whenever any panel button is shown/hidden
+                if(this._connections && !this._obarVisWatched.has(b.child)) {
+                    this._obarVisWatched.add(b.child);
+                    this._connections.connect(b.child, 'notify::visible', this.setPanelStyle.bind(this));
                 }
             }
             // for(let k=0; k<btns.length; k++) {
@@ -1474,6 +1483,7 @@ export default class Openbar extends Extension {
         }
 
         // Setup all connections
+        this._obarVisWatched = new WeakSet();
         this._connections = new ConnectManager(connections);
 
         // Setup connections for addition of new QSAP extension panels
@@ -1588,6 +1598,13 @@ export default class Openbar extends Extension {
 
         this._connections.disconnectAll();
         this._connections = null;
+        this._obarVisWatched = new WeakSet();
+        for(const box of this.panelBoxes ?? []) {
+            for(const b of box.get_children()) {
+                b.remove_style_pseudo_class?.('obar-first');
+                b.remove_style_pseudo_class?.('obar-last');
+            }
+        }
 
         this.disconnectWindowSignals();
 
