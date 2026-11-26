@@ -1,5 +1,21 @@
-
 # Open Bar (GNOME 4X Extension)  
+
+> **About this fork**
+>
+> This is a maintained fork of [neuromorph/openbar](https://github.com/neuromorph/openbar), which has been inactive since October 2025. It adds GNOME 50 and 51 support and the following fixes:
+>
+> - Trilands: rounded edges are applied to the first and last *visible* buttons, so hidden indicators no longer leave square corners or wrongly sized buttons.
+> - Fixed `obarRunDir is undefined` error when the color scheme changes while the extension is disabled (e.g. at screen lock).
+> - Guarded panel styling during shell teardown to avoid crashes.
+>
+> **Install from source**
+>
+> ```bash
+> git clone https://github.com/TraceM171/openbar.git
+> cp -r openbar/openbar@neuromorph ~/.local/share/gnome-shell/extensions/
+> ```
+>
+> Log out and back in, then run `gnome-extensions enable openbar@neuromorph`. If a version from extensions.gnome.org is installed, remove it first.
 
 
 A GNOME Shell extension for theming Gnome Top Bar / Top Panel, Menus, Dash/Dock, Gnome Shell and Gtk/Flatpak Apps.  
